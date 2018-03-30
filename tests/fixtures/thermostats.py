@@ -71,6 +71,11 @@ def thermostat_type_5(request):
     thermostats = from_csv(get_data_path(request.param))
     return next(thermostats)
 
+@pytest.fixture(scope="session", params=["../data/metadata_single_zero_days.csv"])
+def thermostat_zero_days(request):
+    thermostats = from_csv(get_data_path(request.param))
+    return next(thermostats)
+
 @pytest.fixture(scope="session")
 def core_heating_day_set_type_1_mid_to_mid(thermostat_type_1):
     return thermostat_type_1.get_core_heating_days(method="year_mid_to_mid")[0]
