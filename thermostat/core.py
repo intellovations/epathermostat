@@ -11,6 +11,7 @@ from pkg_resources import resource_stream
 
 from thermostat.regression import runtime_regression
 from thermostat import get_version
+from thermostat.climate_zone import retrieve_climate_zone
 
 if "0.21." in pd.__version__:
     warn(
@@ -1077,41 +1078,10 @@ class Thermostat(object):
             or cooling days.
         """
 
-        def _load_mapping(filename_or_buffer):
-            df = pd.read_csv(
-                filename_or_buffer,
-                usecols=["zipcode", "group"],
-                dtype={"zipcode": str, "group": str},
-            ).set_index('zipcode').drop('zipcode')
-            df = df.where((pd.notnull(df)), None)
-
-            return dict(df.to_records('index'))
-
-        if climate_zone_mapping is None:
-            with resource_stream('thermostat.resources',
-                                 'Building America Climate Zone to Zipcode Database_Rev2_2016.09.08.csv') as f:
-                mapping = _load_mapping(f)
-        else:
-            try:
-                mapping = _load_mapping(climate_zone_mapping)
-            except: #!!! danger: wildcard except. Should specify exception.
-                raise ValueError("Could not load climate zone mapping")
-
-        with resource_stream('thermostat.resources', 'regional_baselines.csv') as f:
-            df = pd.read_csv(
-                f, usecols=[
-                    'EIA Climate Zone',
-                    'Baseline heating temp (F)',
-                    'Baseline cooling temp (F)'
-                ])
-            df = df.where((pd.notnull(df)), None)
-            df = df.set_index('EIA Climate Zone')
-            cooling_regional_baseline_temps = { k: v for k, v in df['Baseline cooling temp (F)'].iteritems()}
-            heating_regional_baseline_temps = { k: v for k, v in df['Baseline heating temp (F)'].iteritems()}
-
-        climate_zone = mapping.get(self.zipcode)
-        baseline_regional_cooling_comfort_temperature = cooling_regional_baseline_temps.get(climate_zone, None)
-        baseline_regional_heating_comfort_temperature = heating_regional_baseline_temps.get(climate_zone, None)
+        retval = retrieve_climate_zone(climate_zone_mapping, self.zipcode)
+        climate_zone = retval.climate_zone
+        baseline_regional_cooling_comfort_temperature = retval.baseline_regional_cooling_comfort_temperature
+        baseline_regional_heating_comfort_temperature = retval.baseline_regional_heating_comfort_temperature
 
         metrics = []
 
@@ -1366,7 +1336,6 @@ class Thermostat(object):
                     baseline_total_core_day_runtime_baseline_regional = None
                     _daily_mean_core_day_demand_baseline_baseline_regional = None
 
-
                 n_days_both, n_days_insufficient_data = self.get_ignored_days(core_heating_day_set)
                 n_core_heating_days = self.get_core_day_set_n_days(core_heating_day_set)
                 n_days_in_inputfile_date_range = self.get_inputfile_date_range(core_heating_day_set)
@@ -1379,7 +1348,7 @@ class Thermostat(object):
                     "heating_or_cooling": core_heating_day_set.name,
                     "zipcode": self.zipcode,
                     "station": self.station,
-                    "climate_zone": mapping.get(self.zipcode),
+                    "climate_zone": climate_zone,
 
                     "start_date": pd.Timestamp(core_heating_day_set.start_date).to_pydatetime().isoformat(),
                     "end_date": pd.Timestamp(core_heating_day_set.end_date).to_pydatetime().isoformat(),
