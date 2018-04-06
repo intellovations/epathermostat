@@ -11,7 +11,11 @@ from datetime import timedelta
 import dateutil.parser
 import os
 import pytz
+from multiprocessing import Pool
+from functools import partial
 
+
+MAX_FTP_CONNECTIONS = 3
 
 def normalize_utc_offset(utc_offset):
     """
@@ -69,45 +73,57 @@ def from_csv(metadata_filename, verbose=False):
         }
     )
 
-    for i, row in metadata.iterrows():
-        if verbose:
-            print("Importing thermostat {}".format(row.thermostat_id))
+    p = Pool(MAX_FTP_CONNECTIONS)
+    multiprocess_func_partial = partial(multiprocess_func, metadata_filename=metadata_filename, verbose=verbose)
+    result_list = p.map(multiprocess_func_partial, metadata.iterrows(), chunksize=2)
+    p.close()
+    p.join()
 
-        # make sure this thermostat type is supported.
-        if row.equipment_type not in [1, 2, 3, 4, 5]:
-            warnings.warn("Skipping import of thermostat controlling equipment"
-                          " of unsupported type. (id={})".format(row.thermostat_id))
-            continue
+    return result_list
 
-        interval_data_filename = os.path.join(os.path.dirname(metadata_filename), row.interval_data_filename)
 
-        try:
-            thermostat = get_single_thermostat(
-                    row.thermostat_id,
-                    row.zipcode,
-                    row.equipment_type,
-                    row.utc_offset,
-                    interval_data_filename
-            )
-        except ValueError:
-            # Could not locate a station for the thermostat. Warn and skip.
-            warnings.warn("Skipping import of thermostat (id={}) for which " \
-                    "a sufficient source of outdoor weather data could not " \
-                    "be located using the given ZIP code ({}). This likely " \
-                    "due to the discrepancy between US Postal Service ZIP " \
-                    "codes (which do not always map well to locations) and " \
-                    "Census Bureau ZCTAs (which usually do). Please supply " \
-                    "a zipcode which corresponds to a US Census Bureau ZCTA." \
-                    .format(row.thermostat_id, row.zipcode))
-            continue
+def multiprocess_func(metadata, metadata_filename, verbose=False):
+    i, row = metadata
+    if verbose:
+        print("Importing thermostat {}".format(row.thermostat_id))
 
-        except TypeError as e:
-            warnings.warn("Skipping import of thermostat(id={}) because of" \
-                    "the following error: {}" \
-                    .format(row.thermostat_id, e))
-            continue
+    # make sure this thermostat type is supported.
+    if row.equipment_type not in [1, 2, 3, 4, 5]:
+        warnings.warn(
+            "Skipping import of thermostat controlling equipment"
+            " of unsupported type. (id={})".format(row.thermostat_id))
+        return
 
-        yield thermostat
+    interval_data_filename = os.path.join(os.path.dirname(metadata_filename), row.interval_data_filename)
+
+    try:
+        thermostat = get_single_thermostat(
+                row.thermostat_id,
+                row.zipcode,
+                row.equipment_type,
+                row.utc_offset,
+                interval_data_filename
+        )
+    except ValueError:
+        # Could not locate a station for the thermostat. Warn and skip.
+        warnings.warn(
+            "Skipping import of thermostat (id={}) for which "
+            "a sufficient source of outdoor weather data could not"
+            "be located using the given ZIP code ({}). This likely "
+            "due to the discrepancy between US Postal Service ZIP "
+            "codes (which do not always map well to locations) and "
+            "Census Bureau ZCTAs (which usually do). Please supply "
+            "a zipcode which corresponds to a US Census Bureau ZCTA."
+            .format(row.thermostat_id, row.zipcode))
+        return
+
+    except TypeError as e:
+        warnings.warn("Skipping import of thermostat(id={}) because of" \
+                "the following error: {}" \
+                .format(row.thermostat_id, e))
+        return
+
+    return thermostat
 
 def get_single_thermostat(thermostat_id, zipcode, equipment_type,
                           utc_offset, interval_data_filename):
