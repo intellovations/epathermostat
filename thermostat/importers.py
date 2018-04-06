@@ -14,8 +14,10 @@ import pytz
 from multiprocessing import Pool
 from functools import partial
 
-
+NUMBER_OF_CORES = len(os.sched_getaffinity(0))
 MAX_FTP_CONNECTIONS = 3
+AVAILABLE_PROCESSES = min(NUMBER_OF_CORES, MAX_FTP_CONNECTIONS)
+
 
 def normalize_utc_offset(utc_offset):
     """
@@ -73,7 +75,7 @@ def from_csv(metadata_filename, verbose=False):
         }
     )
 
-    p = Pool(MAX_FTP_CONNECTIONS)
+    p = Pool(AVAILABLE_PROCESSES)
     multiprocess_func_partial = partial(multiprocess_func, metadata_filename=metadata_filename, verbose=verbose)
     result_list = p.map(multiprocess_func_partial, metadata.iterrows(), chunksize=2)
     p.close()
