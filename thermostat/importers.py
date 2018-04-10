@@ -12,6 +12,7 @@ from datetime import datetime
 from datetime import timedelta
 import dateutil.parser
 import os
+import errno
 import pytz
 
 
@@ -25,6 +26,15 @@ def save_json_cache(index, thermostat_id, station):
     station:
         Station ID used to retrieve the weather data.
     """
+    directory = os.path.join(
+        os.curdir,
+        "epathermostat_weather_data")
+
+    try:
+        os.mkdir(directory)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
 
     json_cache = {}
     sqlite_json_store = SqliteJSONStore()
@@ -36,8 +46,9 @@ def save_json_cache(index, thermostat_id, station):
         json_cache[filename] = sqlite_json_store.retrieve_json(filename)
 
     thermostat_filename = "{thermostat_id}.json".format(thermostat_id=thermostat_id)
+    thermostat_path = os.path.join(directory, thermostat_filename)
     try:
-        with open(thermostat_filename, 'w') as outfile:
+        with open(thermostat_path, 'w') as outfile:
             json.dump(json_cache, outfile)
 
     except Exception as e:
