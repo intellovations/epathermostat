@@ -77,11 +77,14 @@ def from_csv(metadata_filename, verbose=False):
 
     p = Pool(AVAILABLE_PROCESSES)
     multiprocess_func_partial = partial(multiprocess_func, metadata_filename=metadata_filename, verbose=verbose)
-    result_list = p.map(multiprocess_func_partial, metadata.iterrows(), chunksize=2)
+    result_list = p.imap(multiprocess_func_partial, metadata.iterrows())
     p.close()
     p.join()
 
-    return result_list
+    # Bad thermostats return None so remove those.
+    results = [x for x in result_list if x is not None]
+
+    return results
 
 
 def multiprocess_func(metadata, metadata_filename, verbose=False):
@@ -119,10 +122,11 @@ def multiprocess_func(metadata, metadata_filename, verbose=False):
             .format(row.thermostat_id, row.zipcode))
         return
 
-    except TypeError as e:
-        warnings.warn("Skipping import of thermostat(id={}) because of" \
-                "the following error: {}" \
-                .format(row.thermostat_id, e))
+    except Exception as e:
+        warnings.warn(
+            "Skipping import of thermostat(id={}) because of"
+            "the following error: {}"
+            .format(row.thermostat_id, e))
         return
 
     return thermostat
