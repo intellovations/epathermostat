@@ -11,10 +11,13 @@ from datetime import timedelta
 import dateutil.parser
 import os
 import pytz
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from functools import partial
 
-NUMBER_OF_CORES = len(os.sched_getaffinity(0))
+try:
+    NUMBER_OF_CORES = len(os.sched_getaffinity(0))
+except AttributeError:
+    NUMBER_OF_CORES = cpu_count()
 MAX_FTP_CONNECTIONS = 3
 AVAILABLE_PROCESSES = min(NUMBER_OF_CORES, MAX_FTP_CONNECTIONS)
 
