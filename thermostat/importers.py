@@ -87,7 +87,8 @@ def from_csv(metadata_filename, verbose=False):
     # Bad thermostats return None so remove those.
     results = [x for x in result_list if x is not None]
 
-    return results
+    # Convert this to an iterator to maintain compatibility
+    return iter(results)
 
 
 def multiprocess_func(metadata, metadata_filename, verbose=False):
