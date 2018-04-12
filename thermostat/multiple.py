@@ -21,7 +21,7 @@ def multiple_thermostat_calculate_epa_field_savings_metrics(thermostats):
     """ Takes a list of thermostats and uses Python's Multiprocessing module to
     run as many processes in parallel as the system will allow.
 
-    thermostats : list of thermostats
+    thermostats : thermostats iterator
         A list of the thermostats run the calculate_epa_field_savings_metrics
         upon.
 
@@ -30,8 +30,11 @@ def multiple_thermostat_calculate_epa_field_savings_metrics(thermostats):
 
     metrics : list of metrics calculated for the thermostats
     """
+    # Convert the thermostats iterator to a list
+    thermostats_list = list(thermostats)
+
     pool = Pool()
-    results = pool.imap(calc_epa_func, thermostats)
+    results = pool.imap(calc_epa_func, thermostats_list)
     pool.close()
     pool.join()
 
@@ -44,7 +47,7 @@ def multiple_thermostat_calculate_epa_field_savings_metrics(thermostats):
 
     # Get the order of the thermostats from the original input so the output
     # matches the order that was sent in
-    thermostat_ids = [thermostat.thermostat_id for thermostat in thermostats]
+    thermostat_ids = [thermostat.thermostat_id for thermostat in thermostats_list]
     metrics = []
     for thermostat_id in thermostat_ids:
         for metric in metrics_dict[thermostat_id]:
