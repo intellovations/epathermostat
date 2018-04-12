@@ -16,7 +16,7 @@ import errno
 import pytz
 
 
-def save_json_cache(index, thermostat_id, station):
+def save_json_cache(index, thermostat_id, station, cache_path=None):
     """ Saves the cached results from eemeter into a JSON file.
 
     index : pandas index
@@ -25,10 +25,16 @@ def save_json_cache(index, thermostat_id, station):
         A unique identifier for the termostat (used for the filename)
     station:
         Station ID used to retrieve the weather data.
+    cache_path: str
+        Directory path to save the cached data
     """
-    directory = os.path.join(
-        os.curdir,
-        "epathermostat_weather_data")
+    if cache_path is None:
+        directory = os.path.join(
+            os.curdir,
+            "epathermostat_weather_data")
+    else:
+        directory = os.path.normpath(
+            cache_path)
 
     try:
         os.mkdir(directory)
@@ -69,8 +75,6 @@ def normalize_utc_offset(utc_offset):
     -------
     datetime timdelta offset
     """
-    # FIXME
-
     try:
         if int(utc_offset) == 0:
             utc_offset = "+0"
@@ -84,7 +88,7 @@ def normalize_utc_offset(utc_offset):
            e))
 
 
-def from_csv(metadata_filename, verbose=False, save_cache=False):
+def from_csv(metadata_filename, verbose=False, save_cache=False, cache_path=None):
     """
     Creates Thermostat objects from data stored in CSV files.
 
@@ -96,6 +100,8 @@ def from_csv(metadata_filename, verbose=False, save_cache=False):
         Set to True to output a more detailed log of import activity.
     save_cache: boolean
         Set to True to save the cached data to a json file (based on Thermostat ID).
+    cache_path: str
+        Directory path to save the cached data
 
     Returns
     -------
@@ -132,7 +138,8 @@ def from_csv(metadata_filename, verbose=False, save_cache=False):
                     row.equipment_type,
                     row.utc_offset,
                     interval_data_filename,
-                    save_cache
+                    save_cache,
+                    cache_path
             )
         except ValueError:
             # Could not locate a station for the thermostat. Warn and skip.
@@ -156,7 +163,7 @@ def from_csv(metadata_filename, verbose=False, save_cache=False):
 
 
 def get_single_thermostat(thermostat_id, zipcode, equipment_type,
-                          utc_offset, interval_data_filename, save_cache=False):
+                          utc_offset, interval_data_filename, save_cache=False, cache_path=None):
     """ Load a single thermostat directly from an interval data file.
 
     Parameters
@@ -176,6 +183,8 @@ def get_single_thermostat(thermostat_id, zipcode, equipment_type,
         The path to the CSV in which the interval data is stored.
     save_cache: boolean
         Set to True to save the cached data to a json file (based on Thermostat ID).
+    cache_path: str
+        Directory path to save the cached data
 
     Returns
     -------
@@ -233,7 +242,7 @@ def get_single_thermostat(thermostat_id, zipcode, equipment_type,
 
     # Export the data from the cache
     if save_cache:
-        save_json_cache(hourly_index, thermostat_id, station)
+        save_json_cache(hourly_index, thermostat_id, station, cache_path)
 
     # load daily time series values
     if cooling:
