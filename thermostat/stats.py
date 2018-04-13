@@ -216,7 +216,7 @@ def get_filtered_stats(
             "Not enough data to compute summary_statistics ({}_{})"
             .format(label, heating_or_cooling)
         )
-        # return []
+        return []
 
 
 def compute_summary_statistics(
@@ -458,15 +458,16 @@ def compute_summary_statistics(
     pool = Pool()
 
     if advanced_filtering:
-        stats = [i for i in pool.map(multi_heating_stats, adv_heating_args) + pool.map(multi_cooling_stats, adv_cooling_args) if i is not None]
+        stats = list(chain(
+            pool.imap(multi_heating_stats, adv_heating_args),
+            pool.imap(multi_cooling_stats, adv_cooling_args)))
     else:
-        stats = [i for i in pool.map(multi_heating_stats, heating_args) + pool.map(multi_cooling_stats, cooling_args) if i is not None]
+        stats = list(chain(
+            pool.imap(multi_heating_stats, heating_args),
+            pool.imap(multi_cooling_stats, cooling_args)))
 
-    stats_dict = {}
-    for stat in stats:
-        if stat:
-            stats_dict[stat["label"]] = stat
-    # stats_dict = {stat[0]["label"]: stat[0] for stat in stats}
+    __import__('pdb').set_trace()
+    stats_dict = {stat["label"]: stat for stat in stats}
 
     def _load_climate_zone_weights(filename_or_buffer):
         climate_zone_keys = {
