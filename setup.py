@@ -37,6 +37,7 @@ setup(name='thermostat',
     packages=find_packages(),
     package_data={'': ['*.csv']},
     install_requires=[
+        'pathos',
         'eemeter==0.4.8',
         'pandas==0.22.0',
     ],
