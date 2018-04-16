@@ -860,17 +860,16 @@ class Thermostat(object):
 
         self._protect_cooling()
 
-        if method == 'tenth_percentile':
+        if method != 'tenth_percentile':
+            raise NotImplementedError
 
-            if source == 'cooling_setpoint':
-                return self.cooling_setpoint[core_cooling_day_set.hourly].dropna().quantile(.1)
-            elif source == 'temperature_in':
-                return self.temperature_in[core_cooling_day_set.hourly].dropna().quantile(.1)
-            else:
-                raise NotImplementedError
-
+        if source == 'cooling_setpoint':
+            return self.cooling_setpoint[core_cooling_day_set.hourly].dropna().quantile(.1)
+        elif source == 'temperature_in':
+            return self.temperature_in[core_cooling_day_set.hourly].dropna().quantile(.1)
         else:
             raise NotImplementedError
+
 
     def get_core_heating_day_baseline_setpoint(self, core_heating_day_set,
             method='ninetieth_percentile', source='temperature_in'):
@@ -897,17 +896,16 @@ class Thermostat(object):
 
         self._protect_heating()
 
-        if method == 'ninetieth_percentile':
+        if method != 'ninetieth_percentile':
+            raise NotImplementedError
 
-            if source == 'heating_setpoint':
-                return self.heating_setpoint[core_heating_day_set.hourly].dropna().quantile(.9)
-            elif source == 'temperature_in':
-                return self.temperature_in[core_heating_day_set.hourly].dropna().quantile(.9)
-            else:
-                raise NotImplementedError
-
+        if source == 'heating_setpoint':
+            return self.heating_setpoint[core_heating_day_set.hourly].dropna().quantile(.9)
+        elif source == 'temperature_in':
+            return self.temperature_in[core_heating_day_set.hourly].dropna().quantile(.9)
         else:
             raise NotImplementedError
+
 
     def get_baseline_cooling_demand(self, core_cooling_day_set, temp_baseline, tau):
         """ Calculate baseline cooling demand for a particular core cooling
