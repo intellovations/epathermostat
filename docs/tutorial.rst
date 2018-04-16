@@ -125,8 +125,8 @@ If you wish to use multiple processors for your thermostat calculations you'll
 need some additional modules:
 
 .. code-block:: python
+
     from thermostat.multiple import multiple_thermostat_calculate_epa_field_savings_metrics
-    import multiprocessing
 
 
 Set the data_dir variable as a convenience. We will refer to this directory
@@ -224,9 +224,16 @@ replace the above code with the following method call:
     metrics = multiple_thermostat_calculate_epa_field_savings_metrics(thermostats)
 
 This will use all of the available CPUs on the machine in order to calculate
-the savings metrics. (Note, you will need to have imported the
-``multiple_thermostat_calculate_epa_field_savings_metrics`` method from
-``thermostat.multiple`` prior to using this method).
+the savings metrics. 
+
+.. note::
+
+    You will need to have imported the
+    ``multiple_thermostat_calculate_epa_field_savings_metrics`` method from
+    ``thermostat.multiple`` prior to using this method.
+
+    If you're running under Windows please see the "Notes for Windows Users" below.
+
 
 The single-thermostat metrics should be output to CSV and converted to dataframe format.
 
@@ -290,6 +297,23 @@ National savings are computed by weighted average of percent savings results
 grouped by climate zone. Heavier weights are applied to results in climate
 zones which, regionally, tend to have longer runtimes. Weightings used are
 available :download:`for download <../thermostat/resources/NationalAverageClimateZoneWeightings.csv>`.
+
+Notes for Windows Users
+-----------------------
+
+Python under Windows requires that all multiprocessing code needs to be run under a sub module. If you are under Windows you will need to wrap your code using the following:
+
+.. code-block:: python
+    
+    def main():
+        # Code goes here
+
+    if __name__ == "__main__":
+        main()
+
+Not having this wrapper will cause a Runtime Error "Attempt to start a new process before the current process has finished its bootstrapping phase.".
+
+Other platforms should not be affected by this.
 
 More information
 ----------------
