@@ -120,6 +120,15 @@ package.
     from thermostat.stats import compute_summary_statistics
     from thermostat.stats import summary_statistics_to_csv
 
+
+If you wish to use multiple processors for your thermostat calculations you'll
+need some additional modules:
+
+.. code-block:: python
+    from thermostat.multiple import multiple_thermostat_calculate_epa_field_savings_metrics
+    import multiprocessing
+
+
 Set the data_dir variable as a convenience. We will refer to this directory
 and save our results in it. You should also move all downloaded and extracted
 files used in this tutorial into this directory before using them. You may, of
@@ -205,6 +214,19 @@ is only recommended for debugging purposes.
         outputs = thermostat.calculate_epa_field_savings_metrics()
         metrics.extend(outputs)
         # saved_thermostats.append(thermostat)
+
+
+If you are looking to use multiple thermostats for the calculation you may
+replace the above code with the following method call:
+
+.. code-block:: python
+
+    metrics = multiple_thermostat_calculate_epa_field_savings_metrics(thermostats)
+
+This will use all of the available CPUs on the machine in order to calculate
+the savings metrics. (Note, you will need to have imported the
+``multiple_thermostat_calculate_epa_field_savings_metrics`` method from
+``thermostat.multiple`` prior to using this method).
 
 The single-thermostat metrics should be output to CSV and converted to dataframe format.
 
