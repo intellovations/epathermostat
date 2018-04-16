@@ -466,6 +466,8 @@ def compute_summary_statistics(
             pool.imap(multi_heating_stats, heating_args),
             pool.imap(multi_cooling_stats, cooling_args)))
 
+    # Remove empty lists to maintain parity with non-parallel data structure
+    stats = [i for i in stats if i != []]
     stats_dict = {stat["label"]: stat for stat in stats}
 
     def _load_climate_zone_weights(filename_or_buffer):
