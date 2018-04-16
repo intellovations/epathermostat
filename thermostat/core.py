@@ -13,10 +13,13 @@ from thermostat.regression import runtime_regression
 from thermostat import get_version
 from thermostat.climate_zone import retrieve_climate_zone
 
-if "0.21." in pd.__version__:
-    warn(
-        "WARNING: Pandas version 0.21.x has known issues and is not supported. "
-        "Please either downgrade to Pandas 0.20.3 or upgrade to the latest Pandas version.")
+try:
+    if "0.21." in pd.__version__:
+        warn(
+            "WARNING: Pandas version 0.21.x has known issues and is not supported. "
+            "Please either downgrade to Pandas 0.20.3 or upgrade to the latest Pandas version.")
+except TypeError:
+    pass  # Documentation mocks out pd, so ignore if not present.
 
 CoreDaySet = namedtuple("CoreDaySet",
     ["name", "daily", "hourly", "start_date", "end_date"]
