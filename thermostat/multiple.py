@@ -6,6 +6,8 @@ def calc_epa_func(thermostat):
     calculate_epa_field_savings_metrics method. This method is necessary for
     the multiprocessing pool as map / imap need a function to run on.
 
+    Parameters
+    ----------
     thermostat : thermostat
 
     Returns
@@ -21,6 +23,8 @@ def multiple_thermostat_calculate_epa_field_savings_metrics(thermostats):
     """ Takes a list of thermostats and uses Python's Multiprocessing module to
     run as many processes in parallel as the system will allow.
 
+    Parameters
+    ----------
     thermostats : thermostats iterator
         A list of the thermostats run the calculate_epa_field_savings_metrics
         upon.
