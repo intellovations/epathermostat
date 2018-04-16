@@ -276,6 +276,7 @@ def _get_hourly_block(df, prefix):
     values = df[columns].values
     return values.reshape((values.shape[0] * values.shape[1],))
 
+
 def _get_equipment_type(equipment_type):
     """
     Returns
@@ -287,15 +288,12 @@ def _get_equipment_type(equipment_type):
     aux_emerg : boolean
         True if the equipment type has auxiliary/emergency heat equipment
     """
-    if equipment_type == 1:
-        return True, True, True
-    elif equipment_type == 2:
-        return True, True, False
-    elif equipment_type == 3:
-        return True, True, False
-    elif equipment_type == 4:
-        return True, False, False
-    elif equipment_type == 5:
-        return False, True, False
-    else:
-        return None
+    equipment_type_dict = {
+        1: (True, True, True),
+        2: (True, True, False),
+        3: (True, True, False),
+        4: (True, False, False),
+        5: (False, True, False),
+        }
+
+    return(equipment_type_dict.get(equipment_type, None))
