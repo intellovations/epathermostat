@@ -28,13 +28,15 @@ AVAILABLE_PROCESSES = min(NUMBER_OF_CORES, MAX_FTP_CONNECTIONS)
 def save_json_cache(index, thermostat_id, station, cache_path=None):
     """ Saves the cached results from eemeter into a JSON file.
 
-    index : pandas index
-        hourly index ued to compute the available years.
-    thermostat_id: str
+    Parameters
+    ----------
+    index : pd.DatetimeIndex
+        hourly index used to compute the years needed.
+    thermostat_id : str
         A unique identifier for the termostat (used for the filename)
-    station:
+    station : str
         Station ID used to retrieve the weather data.
-    cache_path: str
+    cache_path : str
         Directory path to save the cached data
     """
     if cache_path is None:
