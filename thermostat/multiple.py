@@ -1,7 +1,7 @@
 from multiprocessing import Pool
 
 
-def calc_epa_func(thermostat):
+def _calc_epa_func(thermostat):
     """ Takes an individual thermostat and runs the
     calculate_epa_field_savings_metrics method. This method is necessary for
     the multiprocessing pool as map / imap need a function to run on.
@@ -12,7 +12,6 @@ def calc_epa_func(thermostat):
 
     Returns
     -------
-
     results : results from running calculate_epa_field_savings_metrics
     """
     results = thermostat.calculate_epa_field_savings_metrics()
@@ -31,14 +30,14 @@ def multiple_thermostat_calculate_epa_field_savings_metrics(thermostats):
 
     Returns
     -------
-
-    metrics : list of metrics calculated for the thermostats
+    metrics : list
+        Returns a list of the metrics calculated for the thermostats
     """
     # Convert the thermostats iterator to a list
     thermostats_list = list(thermostats)
 
     pool = Pool()
-    results = pool.imap(calc_epa_func, thermostats_list)
+    results = pool.imap(_calc_epa_func, thermostats_list)
     pool.close()
     pool.join()
 
@@ -51,7 +50,8 @@ def multiple_thermostat_calculate_epa_field_savings_metrics(thermostats):
 
     # Get the order of the thermostats from the original input so the output
     # matches the order that was sent in
-    thermostat_ids = [thermostat.thermostat_id for thermostat in thermostats_list]
+    thermostat_ids = \
+        [thermostat.thermostat_id for thermostat in thermostats_list]
     metrics = []
     for thermostat_id in thermostat_ids:
         for metric in metrics_dict[thermostat_id]:

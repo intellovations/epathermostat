@@ -3,7 +3,7 @@ from pkg_resources import resource_stream
 from collections import namedtuple
 
 
-def load_mapping(filename_or_buffer):
+def _load_mapping(filename_or_buffer):
     df = pd.read_csv(
         filename_or_buffer,
         usecols=["zipcode", "group"],
@@ -40,10 +40,10 @@ def retrieve_climate_zone(climate_zone_mapping, zipcode):
         with resource_stream(
                 'thermostat.resources',
                 'Building America Climate Zone to Zipcode Database_Rev2_2016.09.08.csv') as f:
-            mapping = load_mapping(f)
+            mapping = _load_mapping(f)
     else:
         try:
-            mapping = load_mapping(climate_zone_mapping)
+            mapping = _load_mapping(climate_zone_mapping)
         except Exception as e:
             raise ValueError("Could not load climate zone mapping: %s" % e)
 

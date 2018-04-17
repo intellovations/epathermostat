@@ -321,6 +321,7 @@ def _get_equipment_type(equipment_type):
     aux_emerg : boolean
         True if the equipment type has auxiliary/emergency heat equipment
     """
+    # heating, cooling, aux_emerg
     equipment_type_dict = {
         1: (True, True, True),
         2: (True, True, False),
