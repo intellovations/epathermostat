@@ -1192,6 +1192,9 @@ class Thermostat(object):
                 n_core_cooling_days = self.get_core_day_set_n_days(core_cooling_day_set)
                 n_days_in_inputfile_date_range = self.get_inputfile_date_range(core_cooling_day_set)
 
+                core_cooling_days_mean_indoor_temperature = self.temperature_in[core_cooling_day_set.hourly].mean()
+                core_cooling_days_mean_outdoor_temperature = self.temperature_out[core_cooling_day_set.hourly].mean()
+
                 outputs = {
                     "sw_version": get_version(),
 
@@ -1236,6 +1239,9 @@ class Thermostat(object):
                     "total_core_cooling_runtime": total_runtime_core_cooling,
 
                     "daily_mean_core_cooling_runtime": average_daily_cooling_runtime,
+
+                    "core_cooling_days_mean_indoor_temperature": core_cooling_days_mean_indoor_temperature,
+                    "core_cooling_days_mean_outdoor_temperature": core_cooling_days_mean_outdoor_temperature,
                 }
 
                 metrics.append(outputs)
@@ -1341,6 +1347,9 @@ class Thermostat(object):
                 n_core_heating_days = self.get_core_day_set_n_days(core_heating_day_set)
                 n_days_in_inputfile_date_range = self.get_inputfile_date_range(core_heating_day_set)
 
+                core_heating_days_mean_indoor_temperature = self.temperature_in[core_heating_day_set.hourly].mean()
+                core_heating_days_mean_outdoor_temperature = self.temperature_out[core_heating_day_set.hourly].mean()
+
                 outputs = {
                     "sw_version": get_version(),
 
@@ -1385,6 +1394,9 @@ class Thermostat(object):
                     "total_core_heating_runtime": total_runtime_core_heating,
 
                     "daily_mean_core_heating_runtime": average_daily_heating_runtime,
+
+                    "core_heating_days_mean_indoor_temperature": core_heating_days_mean_indoor_temperature,
+                    "core_heating_days_mean_outdoor_temperature": core_heating_days_mean_outdoor_temperature,
                 }
 
                 if self.equipment_type in self.AUX_EMERG_EQUIPMENT_TYPES:
