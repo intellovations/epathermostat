@@ -30,7 +30,7 @@ def main():
     logging.captureWarnings(True)  # Set to True to log additional warning messages, False to only display on console
 
     data_dir = os.path.join("..", "tests", "data")
-    metadata_filename = os.path.join(data_dir, "metadata.csv")
+    metadata_filename = os.path.join(data_dir, "metadata_20181022.csv")
 
     # Use this to save the weather cache to local disk files
     # thermostats = from_csv(metadata_filename, verbose=True, save_cache=True, cache_path='/tmp/epa_weather_files/')

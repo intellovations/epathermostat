@@ -44,6 +44,7 @@ def schedule_batches(metadata_filename, n_batches, zip_files=False, batches_dir=
             raise ValueError(message)
 
     metadata_df = pd.read_csv(metadata_filename, dtype={"zipcode": str})
+    __import__('pdb').set_trace()
     index = _load_zipcode_to_station_index()
     stations = [index[zipcode] for zipcode in metadata_df.zipcode]
 

@@ -2,7 +2,8 @@ from thermostat.core import Thermostat
 
 import pandas as pd
 # import numpy as np
-from eemeter.weather.location import zipcode_to_usaf_station
+# from eemeter.weather.location import zipcode_to_usaf_station
+from thermostat.stations import lookup_station_by_zipcode
 
 from eemeter.weather import WeatherSource
 from eemeter.weather.cache import SqlJSONStore
@@ -39,6 +40,8 @@ def __prime_eemeter_cache():
     """
     sql_json = SqlJSONStore()
     sql_json.key_exists('0')
+    if sql_json.items.exists is False:
+        __import__('pdb').set_trace()
 
 
 def save_json_cache(index, thermostat_id, station, cache_path=None):
@@ -294,7 +297,7 @@ def get_single_thermostat(thermostat_id, zipcode, equipment_type,
         emergency_heat_runtime = None
 
     # load outdoor temperatures
-    station = zipcode_to_usaf_station(zipcode)
+    station = lookup_station_by_zipcode(zipcode)
 
     if station is None:
         message = "Could not locate a valid source of outdoor temperature " \
