@@ -5,8 +5,8 @@ import pandas as pd
 # from eemeter.weather.location import zipcode_to_usaf_station
 from thermostat.stations import lookup_station_by_zipcode
 
-from eemeter.weather import WeatherSource
-from eemeter.weather.cache import SqlJSONStore
+from thermostat.eemeter_wrapper import WeatherSource
+from eeweather.cache import KeyValueStore
 from eeweather.exceptions import ISDDataNotAvailableError
 import json
 
@@ -38,14 +38,15 @@ def __prime_eemeter_cache():
     during normal processing (which can lead to a race condition and missing
     thermostats)
     """
-    sql_json = SqlJSONStore()
+    sql_json = KeyValueStore()
     sql_json.key_exists('0')
     if sql_json.items.exists is False:
-        __import__('pdb').set_trace()
+        # FIXME
+        raise AttributeError
 
 
 def save_json_cache(index, thermostat_id, station, cache_path=None):
-    """ Saves the cached results from eemeter into a JSON file.
+    """ Saves the cached results from eeweather into a JSON file.
 
     Parameters
     ----------
@@ -74,7 +75,7 @@ def save_json_cache(index, thermostat_id, station, cache_path=None):
 
     json_cache = {}
 
-    sqlite_json_store = SqlJSONStore()
+    sqlite_json_store = KeyValueStore()
     years = index.groupby(index.year).keys()
     for year in years:
         filename = "ISD-{station}-{year}.json".format(

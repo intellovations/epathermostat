@@ -37,8 +37,9 @@ setup(name='thermostat',
     packages=find_packages(),
     package_data={'': ['*.csv']},
     install_requires=[
-        'eemeter==2.4.0',
-        'eeweather==0.3.5',
+        'eemeter @ https://github.com/openeemeter/eemeter/tarball/v2.5.2#egg=eemeter-2.5.2',
+        'eeweather==0.3.13',
         'pandas==0.22.0',
-    ],
+        'sqlalchemy==1.3.1',
+        ],
 )
