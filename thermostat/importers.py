@@ -1,8 +1,6 @@
 from thermostat.core import Thermostat
 
 import pandas as pd
-# import numpy as np
-# from eemeter.weather.location import zipcode_to_usaf_station
 from thermostat.stations import lookup_station_by_zipcode
 
 from thermostat.eemeter_wrapper import WeatherSource
@@ -11,8 +9,6 @@ from eeweather.exceptions import ISDDataNotAvailableError
 import json
 
 import warnings
-# from datetime import datetime
-# from datetime import timedelta
 import dateutil.parser
 import os
 import errno
@@ -30,19 +26,18 @@ AVAILABLE_PROCESSES = min(NUMBER_OF_CORES, MAX_FTP_CONNECTIONS)
 
 
 logger = logging.getLogger('epathermostat')
+# logger = logging.getLogger(__name__)
 
 
-def __prime_eemeter_cache():
+def __prime_eeweather_cache():
     """ Primes the eemeter / eeweather caches by doing a non-existent query
     This creates the cache directories sooner than if they were created
     during normal processing (which can lead to a race condition and missing
     thermostats)
     """
     sql_json = KeyValueStore()
-    sql_json.key_exists('0')
-    if sql_json.items.exists is False:
-        # FIXME
-        raise AttributeError
+    if sql_json.key_exists('0') is not False:
+        raise Exception("eeweather cache was not properly primed. Aborting.")
 
 
 def save_json_cache(index, thermostat_id, station, cache_path=None):
@@ -144,7 +139,7 @@ def from_csv(metadata_filename, verbose=False, save_cache=False, cache_path=None
     if quiet:
         logging.warning('quiet argument has been deprecated. Please remove this flag from your code.')
 
-    __prime_eemeter_cache()
+    __prime_eeweather_cache()
 
     metadata = pd.read_csv(
         metadata_filename,

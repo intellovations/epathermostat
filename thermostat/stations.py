@@ -30,5 +30,6 @@ def lookup_station_by_zipcode(zipcode):
             # return None
 
         return str(station)
-    except Exception:
+    except Exception as e:
+        logging.warning("Failed to get station zip code: %s" % e)
         return None
