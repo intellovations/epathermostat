@@ -1,11 +1,15 @@
 from thermostat.core import Thermostat
 
 import pandas as pd
-from thermostat.stations import lookup_station_by_zipcode
+from thermostat.stations import (
+        get_closest_station_by_zipcode,
+        lookup_usaf_station_by_zipcode
+        )
 
-from thermostat.eemeter_wrapper import WeatherSource
+from thermostat.eeweather_wrapper import get_indexed_temperatures_eeweather
 from eeweather.cache import KeyValueStore
 from eeweather.exceptions import ISDDataNotAvailableError
+from eeweather.stations import get_isd_file_metadata
 import json
 
 import warnings
@@ -25,8 +29,7 @@ MAX_FTP_CONNECTIONS = 3
 AVAILABLE_PROCESSES = min(NUMBER_OF_CORES, MAX_FTP_CONNECTIONS)
 
 
-logger = logging.getLogger('epathermostat')
-# logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def __prime_eeweather_cache():
@@ -197,7 +200,7 @@ def multiprocess_func(metadata, metadata_filename, verbose=False, save_cache=Fal
                 save_cache=save_cache,
                 cache_path=cache_path,
         )
-    except ValueError:
+    except ValueError as e:
         # Could not locate a station for the thermostat. Warn and skip.
         warnings.warn(
             "Skipping import of thermostat (id={}) for which "
@@ -293,16 +296,15 @@ def get_single_thermostat(thermostat_id, zipcode, equipment_type,
         emergency_heat_runtime = None
 
     # load outdoor temperatures
-    station = lookup_station_by_zipcode(zipcode)
+    station = get_closest_station_by_zipcode(zipcode)
 
     if station is None:
         message = "Could not locate a valid source of outdoor temperature " \
                 "data for ZIP code {}".format(zipcode)
         raise ValueError(message)
 
-    ws_hourly = WeatherSource(station, normalized=False, use_cz2010=False)
     utc_offset = normalize_utc_offset(utc_offset)
-    temp_out = ws_hourly.indexed_temperatures(hourly_index_utc - utc_offset, "degF")
+    temp_out = get_indexed_temperatures_eeweather(station, hourly_index_utc - utc_offset)
     temp_out.index = hourly_index
 
     # Export the data from the cache
