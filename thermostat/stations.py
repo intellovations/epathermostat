@@ -80,14 +80,20 @@ def get_closest_station_by_zipcode(zipcode):
     """ Look up the station by ZCTA / Zip Code from eeweather
     Searches for a particular station using the ZCTA lookup for a particular zip code (from eeweather).
     The algorithm is as follows:
+
     1. Get a ranking of stations by distance and rough quality (quality is defined as high, medium, or low).
+
     2. Select the station that is the closest with the highest quality.
+
     3. Check to see if there are any ISD files associated with the station. If not revert to the backup method.
-    4. If the station is unrecognized (`UnrecognizedUSAFIDError`) then revert to the backup method.
-    5. If the ZCTA is unrecognized (`UnrecognizedZCTAError`) then return `None`. No station will be selected.
+
+    4. If the station is unrecognized (:code:`UnrecognizedUSAFIDError`) then revert to the backup method.
+
+    5. If the ZCTA is unrecognized (:code:`UnrecognizedZCTAError`) then return `None`. No station will be selected.
+
     6. If the station selected is not the station that would be selected via
-    the zip code method then we log a debug message letting folks know what's
-    going on.
+       the zip code method then we log a debug message for what we would have previously returned
+
     7. If the station is over 50,000 meters from the ZCTA location then we log a warning message and revert to the backup method.
 
     Parameters
