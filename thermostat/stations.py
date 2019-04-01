@@ -17,15 +17,20 @@ with resource_stream('thermostat.resources', 'zipcode_usaf_station.json') as fh:
     zipcode_usaf_json = fh.read()
 
 zipcode_usaf = json.loads(zipcode_usaf_json)
-QUALITY_SORT = ['high', 'medium', 'low']
+QUALITY_SORT = {'high': 0, 'medium': 1, 'low': 2}
+
+
+def _rank_stations_by_distance_and_quality(lat, lon):
+    station_ranking = rank_stations(lat, lon)
+    station_ranking['enumerated_quality'] = station_ranking['rough_quality'].map(QUALITY_SORT)
+    station_ranking = station_ranking.sort_values(by=['distance_meters', 'enumerated_quality'])
+    return station_ranking
 
 
 def _get_closest_station_by_zipcode_ranked(zipcode, rank):
     lat, lon = zcta_to_lat_long(zipcode)
-    station_ranking = rank_stations(lat, lon)
-    station_ranking = station_ranking.sort_values(by=['distance_meters', 'rough_quality'])
+    station_ranking = _rank_stations_by_distance_and_quality(lat, lon)
     station, warnings = select_station(station_ranking, rank=rank)
-
     return station, warnings, lat, lon
 
 
@@ -35,7 +40,7 @@ def get_closest_station_by_zipcode(zipcode):
     :returns:  Station
 
     """
-    station_lookup_method_zipcode = lookup_usaf_station_by_zipcode(zipcode)
+    station_lookup_method_by_zipcode = lookup_usaf_station_by_zipcode(zipcode)
     try:
         rank = 0
         finding_station = True
@@ -47,22 +52,23 @@ def get_closest_station_by_zipcode(zipcode):
 
         isd_metadata = get_isd_file_metadata(str(station))
         if len(isd_metadata) == 0:
-            logging.warningg("Zipcode %s mapped to station %s, but no ISD metadata was found." % (zipcode, station))
-            return station_lookup_method_zipcode
+            logging.warning("Zipcode %s mapped to station %s, but no ISD metadata was found." % (zipcode, station))
+            return station_lookup_method_by_zipcode
 
     except UnrecognizedUSAFIDError as e:
-        logging.warning("Closest station %s is unrecognized. Using backup-method station %s instead." % (
+        logging.warning("Closest station %s is not a recognized station. Using backup-method station %s for zipcode %s instead." % (
             str(station),
-            station_lookup_method_zipcode))
-        return station_lookup_method_zipcode
+            station_lookup_method_by_zipcode,
+            zipcode))
+        return station_lookup_method_by_zipcode
 
     except UnrecognizedZCTAError as e:
         logging.warning("Unrecognized ZCTA %s" % e)
         return None
 
-    if str(station) != station_lookup_method_zipcode:
+    if str(station) != station_lookup_method_by_zipcode:
         logging.debug("Previously would have selected station %s instead of %s for zip code %s" % (
-            station_lookup_method_zipcode,
+            station_lookup_method_by_zipcode,
             str(station),
             zipcode))
 
@@ -78,8 +84,8 @@ def get_closest_station_by_zipcode(zipcode):
             ))
         logging.warning("Closest station %s is too far. Using backup-method station %s instead." % (
             str(station),
-            station_lookup_method_zipcode))
-        return station_lookup_method_zipcode
+            station_lookup_method_by_zipcode))
+        return station_lookup_method_by_zipcode
 
     return str(station)
 
