@@ -1,15 +1,11 @@
 from thermostat.core import Thermostat
 
 import pandas as pd
-from thermostat.stations import (
-        get_closest_station_by_zipcode,
-        lookup_usaf_station_by_zipcode
-        )
+from thermostat.stations import get_closest_station_by_zipcode
 
 from thermostat.eeweather_wrapper import get_indexed_temperatures_eeweather
 from eeweather.cache import KeyValueStore
 from eeweather.exceptions import ISDDataNotAvailableError
-from eeweather.stations import get_isd_file_metadata
 import json
 
 import warnings

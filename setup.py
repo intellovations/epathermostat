@@ -35,7 +35,7 @@ setup(name='thermostat',
     cmdclass = {'test': PyTest},
     keywords='thermostat savings EPA',
     packages=find_packages(),
-    package_data={'': ['*.csv']},
+    package_data={'': ['*.csv', '*.json']},
     install_requires=[
         'eemeter @ https://github.com/openeemeter/eemeter/tarball/v2.5.2#egg=eemeter-2.5.2',
         'eeweather==0.3.13',

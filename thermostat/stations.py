@@ -12,9 +12,7 @@ from eeweather.exceptions import (
 
 logging.getLogger(__name__)
 
-
-with resource_stream('thermostat.resources', 'zipcode_usaf_station.json') as fh:
-    zipcode_usaf_json = fh.read()
+zipcode_usaf_json = resource_stream('thermostat.resources', 'zipcode_usaf_station.json').read().decode()
 
 zipcode_usaf = json.loads(zipcode_usaf_json)
 QUALITY_SORT = {'high': 0, 'medium': 1, 'low': 2}
