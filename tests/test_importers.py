@@ -1,5 +1,4 @@
 from thermostat.importers import from_csv
-from thermostat.importers import normalize_utc_offset
 from thermostat.util.testing import get_data_path
 import datetime
 
@@ -10,7 +9,6 @@ import pytest
 from .fixtures.thermostats import (
         thermostat_type_1,
         thermostat_type_1_utc,
-        thermostat_type_1_utc_bad,
         thermostat_type_1_too_many_minutes,
         )
 
@@ -31,24 +29,6 @@ def test_import_csv(thermostat_type_1):
 
     assert_is_series_with_shape(thermostat_type_1.temperature_in, (35064,))
     assert_is_series_with_shape(thermostat_type_1.temperature_out, (35064,))
-
-def test_utc_offset(thermostat_type_1_utc, thermostat_type_1_utc_bad):
-    assert(normalize_utc_offset("+0") == datetime.timedelta(0))
-    assert(normalize_utc_offset("-0") == datetime.timedelta(0))
-    assert(normalize_utc_offset("0") == datetime.timedelta(0))
-    assert(normalize_utc_offset(0) == datetime.timedelta(0))
-    assert(normalize_utc_offset("+6") == datetime.timedelta(0, 21600))
-    assert(normalize_utc_offset("-6") == datetime.timedelta(-1, 64800))
-    assert(normalize_utc_offset(-6) == datetime.timedelta(-1, 64800))
-
-    with pytest.raises(TypeError) as excinfo:
-        normalize_utc_offset(6)
-    assert "Invalid UTC" in str(excinfo)
-
-    # Load a thermostat with utc offset == 0
-    assert(isinstance(thermostat_type_1_utc.cool_runtime_daily, pd.Series))
-    assert(isinstance(thermostat_type_1_utc.cool_runtime_hourly, pd.Series))
-    assert(thermostat_type_1_utc_bad is None)
 
 def test_too_many_minutes(thermostat_type_1_too_many_minutes):
     # None of the thermostats in this list should import

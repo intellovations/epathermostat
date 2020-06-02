@@ -2,7 +2,7 @@
 import csv
 import glob
 import os
-
+import dateutil.parser
 from datetime import datetime, timedelta
 
 FIELDNAMES = [
@@ -11,9 +11,35 @@ FIELDNAMES = [
         'heat_runtime_stg1', 'heat_runtime_stg2', 'heat_equiv_runtime',
         'emergency_heat_runtime',
         'auxiliary_heat_runtime',
-        'heating_setpoint', 'cooling_setpoint',
         'temp_in',
         ]
+
+
+def normalize_utc_offset(utc_offset):
+    """
+    Normalizes the UTC offset
+    Returns the UTC offset based on the string passed in.
+
+    Parameters
+    ----------
+    utc_offset : str
+        String representation of the UTC offset
+
+    Returns
+    -------
+    datetime timdelta offset
+    """
+    try:
+        if int(utc_offset) == 0:
+            utc_offset = "+0"
+        delta = dateutil.parser.parse(
+            "2000-01-01T00:00:00" + str(utc_offset)).tzinfo.utcoffset(None)
+        return delta
+
+    except (ValueError, TypeError, AttributeError) as e:
+        raise TypeError("Invalid UTC offset: {} ({})".format(
+           utc_offset,
+           e))
 
 
 def main():
@@ -23,6 +49,14 @@ def main():
     """
 
     hour_interval = timedelta(hours=1)
+
+    metadata = {}
+    for filename in glob.iglob('metadata*.csv'):
+        with open(filename) as metadata_csv:
+            metadata_reader = csv.DictReader(metadata_csv)
+            for row in metadata_reader:
+                metadata[row['interval_data_filename']] = row
+
     for filename in glob.iglob('thermostat_*.csv'):
         input_filename = filename
         output_filename = os.path.join("new", filename)
@@ -35,10 +69,12 @@ def main():
             with open(input_filename) as csvfile:
                 thermostat_csv = csv.DictReader(csvfile)
                 for row in thermostat_csv:
+                    utc_offset = normalize_utc_offset(metadata[input_filename]['utc_offset'])
                     current_datetime = datetime.strptime(row['date'], '%Y-%m-%d')
                     for hour in range(0, 24):
+
                         current_row = {}
-                        current_row['datetime'] = current_datetime + (hour_interval * hour)
+                        current_row['datetime'] = current_datetime + (hour_interval * hour) - utc_offset
 
                         current_row['cool_runtime_stg2'] = None
 
@@ -69,11 +105,6 @@ def main():
                         header = 'temp_in_%02d' % hour
                         current_row['temp_in'] = row[header]
 
-                        header = 'heating_setpoint_%02d' % hour
-                        current_row['heating_setpoint'] = row[header]
-
-                        header = 'cooling_setpoint_%02d' % hour
-                        current_row['cooling_setpoint'] = row[header]
                         csv_out.writerow(current_row)
 
 

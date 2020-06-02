@@ -96,33 +96,6 @@ def save_json_cache(index, thermostat_id, station, cache_path=None):
         warnings.warn("Unable to write JSON file: {}".format(e))
 
 
-def normalize_utc_offset(utc_offset):
-    """
-    Normalizes the UTC offset
-    Returns the UTC offset based on the string passed in.
-
-    Parameters
-    ----------
-    utc_offset : str
-        String representation of the UTC offset
-
-    Returns
-    -------
-    datetime timdelta offset
-    """
-    try:
-        if int(utc_offset) == 0:
-            utc_offset = "+0"
-        delta = dateutil.parser.parse(
-            "2000-01-01T00:00:00" + str(utc_offset)).tzinfo.utcoffset(None)
-        return delta
-
-    except (ValueError, TypeError, AttributeError) as e:
-        raise TypeError("Invalid UTC offset: {} ({})".format(
-           utc_offset,
-           e))
-
-
 def from_csv(metadata_filename, verbose=False, save_cache=False, shuffle=True, cache_path=None, quiet=None):
     """
     Creates Thermostat objects from data stored in CSV files.
@@ -160,7 +133,6 @@ def from_csv(metadata_filename, verbose=False, save_cache=False, shuffle=True, c
             "cool_type": str,
             "cool_stage": str,
             "zipcode": str,
-            "utc_offset": str,
             "interval_data_filename": str
         }
     )
@@ -219,7 +191,6 @@ def _multiprocess_func(metadata, metadata_filename, verbose=False, save_cache=Fa
                 heat_stage=row.heat_stage,
                 cool_type=row.cool_type,
                 cool_stage=row.cool_stage,
-                utc_offset=row.utc_offset,
                 interval_data_filename=interval_data_filename,
                 save_cache=save_cache,
                 cache_path=cache_path,
@@ -257,7 +228,7 @@ def _multiprocess_func(metadata, metadata_filename, verbose=False, save_cache=Fa
 
 def get_single_thermostat(thermostat_id, zipcode,
                           heat_type, heat_stage, cool_type, cool_stage,
-                          utc_offset, interval_data_filename, save_cache=False, cache_path=None):
+                          interval_data_filename, save_cache=False, cache_path=None):
     """ Load a single thermostat directly from an interval data file.
 
     Parameters
@@ -268,11 +239,6 @@ def get_single_thermostat(thermostat_id, zipcode,
         The zipcode of the thermostat, e.g. `"01234"`.
     equipment_type : str
         The equipment type of the thermostat.
-    utc_offset : str
-        A string representing the UTC offset of the interval data, e.g. `"-0700"`.
-        Could also be `"Z"` (UTC), or just `"+7"` (equivalent to `"+0700"`),
-        or any other timezone format recognized by the library
-        method dateutil.parser.parse.
     interval_data_filename : str
         The path to the CSV in which the interval data is stored.
     save_cache: boolean
@@ -303,16 +269,6 @@ def get_single_thermostat(thermostat_id, zipcode,
     # load hourly time series values
     temp_in = _create_series(df.temp_in, hourly_index)
 
-    if has_heating(heat_type):
-        heating_setpoint = _create_series(df.heating_setpoint, hourly_index)
-    else:
-        heating_setpoint = None
-
-    if has_cooling(cool_type):
-        cooling_setpoint = _create_series(df.cooling_setpoint, hourly_index)
-    else:
-        cooling_setpoint = None
-
     if has_auxiliary(heat_type) and has_emergency(heat_type):
         auxiliary_heat_runtime = _create_series(df.auxiliary_heat_runtime, hourly_index)
         emergency_heat_runtime = _create_series(df.emergency_heat_runtime, hourly_index)
@@ -338,8 +294,7 @@ def get_single_thermostat(thermostat_id, zipcode,
                 "data for ZIP code {}".format(zipcode)
         raise ValueError(message)
 
-    utc_offset = normalize_utc_offset(utc_offset)
-    temp_out = get_indexed_temperatures_eeweather(station, hourly_index_utc - utc_offset)
+    temp_out = get_indexed_temperatures_eeweather(station, hourly_index_utc)
     temp_out.index = hourly_index
 
     # Export the data from the cache
@@ -404,8 +359,6 @@ def get_single_thermostat(thermostat_id, zipcode,
     else:
         heat_runtime = None
 
-    cooling_setpoint = None
-    heating_setpoint = None
     # create thermostat instance
     thermostat = Thermostat(
         thermostat_id,
@@ -417,8 +370,6 @@ def get_single_thermostat(thermostat_id, zipcode,
         station,
         temp_in,
         temp_out,
-        cooling_setpoint,
-        heating_setpoint,
         cool_runtime,
         heat_runtime,
         auxiliary_heat_runtime,
